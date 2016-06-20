@@ -168,7 +168,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		public int CalculateTilesetMovementClass(TileSet tileset)
 		{
-			/* collect our ability to cross *all* terraintypes, in a bitvector */
+			// collect our ability to cross *all* terraintypes, in a bitvector
 			return TilesetTerrainInfo[tileset].Select(ti => ti.Cost < int.MaxValue).ToBits();
 		}
 
@@ -179,13 +179,13 @@ namespace OpenRA.Mods.Common.Traits
 
 		static bool IsMovingInMyDirection(Actor self, Actor other)
 		{
-			if (!other.IsMoving()) return false;
-
 			var selfMobile = self.TraitOrDefault<Mobile>();
-			if (selfMobile == null) return false;
+			if (selfMobile == null)
+				return false;
 
 			var otherMobile = other.TraitOrDefault<Mobile>();
-			if (otherMobile == null) return false;
+			if (otherMobile == null || !otherMobile.IsMoving)
+				return false;
 
 			// Sign of dot-product indicates (roughly) if vectors are facing in same or opposite directions:
 			var dp = CVec.Dot(selfMobile.ToCell - self.Location, otherMobile.ToCell - other.Location);
@@ -319,7 +319,7 @@ namespace OpenRA.Mods.Common.Traits
 	}
 
 	public class Mobile : UpgradableTrait<MobileInfo>, IIssueOrder, IResolveOrder, IOrderVoice, IPositionable, IMove, IFacing, ISync,
-		IDeathActorInitModifier, INotifyAddedToWorld, INotifyRemovedFromWorld, INotifyBlockingMove
+		IDeathActorInitModifier, INotifyAddedToWorld, INotifyRemovedFromWorld, INotifyBlockingMove, IActorPreviewInitModifier
 	{
 		const int AverageTicksBeforePathing = 5;
 		const int SpreadTicksBeforePathing = 5;
@@ -714,6 +714,12 @@ namespace OpenRA.Mods.Common.Traits
 						self.ActorID, self.Location);
 				}
 			}
+		}
+
+		void IActorPreviewInitModifier.ModifyActorPreviewInit(Actor self, TypeDictionary inits)
+		{
+			if (!inits.Contains<DynamicFacingInit>() && !inits.Contains<FacingInit>())
+				inits.Add(new DynamicFacingInit(() => facing));
 		}
 
 		class MoveOrderTargeter : IOrderTargeter

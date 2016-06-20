@@ -30,15 +30,17 @@ namespace OpenRA.Mods.RA.Projectiles
 		public readonly int BrightZaps = 1;
 		public readonly int DimZaps = 2;
 
-		public IEffect Create(ProjectileArgs args) { return new TeslaZap(this, args); }
+		public readonly int Duration = 2;
+
+		public IProjectile Create(ProjectileArgs args) { return new TeslaZap(this, args); }
 	}
 
-	public class TeslaZap : IEffect
+	public class TeslaZap : IProjectile
 	{
 		readonly ProjectileArgs args;
 		readonly TeslaZapInfo info;
 		TeslaZapRenderable zap;
-		int timeUntilRemove = 2; // # of frames
+		int timeUntilRemove; // # of frames
 		bool doneDamage = false;
 		bool initialized = false;
 
@@ -46,6 +48,7 @@ namespace OpenRA.Mods.RA.Projectiles
 		{
 			this.args = args;
 			this.info = info;
+			this.timeUntilRemove = info.Duration;
 		}
 
 		public void Tick(World world)
